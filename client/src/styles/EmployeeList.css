@@ -1,0 +1,39 @@
+.employee-list-container {
+    margin-top: 80px;
+}
+
+
+.table {
+    /* padding: 80px; */
+    margin-top: 80px;
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td, .table th {
+    padding: 0.2rem ;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.button-edit {
+    color: #ffc107;
+    background-color: transparent;
+    border-color: #ffc107;
+}
+
+.button-delete {
+    color: #dc3545;
+    background-color: transparent;
+    border-color: #dc3545;
+}
+
+.button-edit:hover, .button-delete:hover {
+    opacity: 0.85;
+}

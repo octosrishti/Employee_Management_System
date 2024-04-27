@@ -1,2 +1,5 @@
-/node_modules
-.env.local
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=password
+DB_NAME=org_db
+PORT=3000

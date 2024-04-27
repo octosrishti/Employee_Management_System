@@ -1,0 +1,19 @@
+.navbar {
+    background-color: #343a40 !important; /* Darker shade for better contrast */
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem; /* Larger and more prominent */
+}
+
+.nav-link {
+    font-size: 1.1rem; /* Slightly larger links for better readability */
+    margin-right: 10px; /* Spacing between items */
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center; /* Center alignment of nav items on small screens */
+    }
+}

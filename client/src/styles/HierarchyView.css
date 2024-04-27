@@ -1,0 +1,107 @@
+/* Base Styles for the Hierarchical Tree */
+ul.tree {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+}
+.heirarchy{
+    margin: 80px;
+}
+
+ul.tree li {
+    margin: 16px 0;
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+ul.tree li:hover {
+    transform: scale(1.03);
+}
+
+/* Connector Lines */
+ul.tree li::before, ul.tree li::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    border: 1px solid #ccc;
+}
+
+ul.tree li::before {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+
+ul.tree li::after {
+    top: 50%;
+    left: -10px;
+    width: 20px;
+    height: 1px;
+}
+
+/* Leaf Nodes Style */
+li.leaf-node a {
+    padding: 5px 10px;
+    background: linear-gradient(145deg, #6db1ff, #4976e1);
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Non-Leaf Nodes Style */
+li.non-leaf-node a {
+    padding: 5px 10px;
+    background: linear-gradient(145deg, #ffc107, #ff8b00);
+    border-radius: 5px;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Highlight on Hover */
+ul.tree li a:hover {
+    background: linear-gradient(145deg, #4CAF50, #087f23);
+    box-shadow: 0px 0px 8px rgba(0, 128, 0, 0.5);
+}
+
+/* Icons for Different Roles */
+li.founder::before, li.manager::before, li.employee::before {
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: -25px;
+    top: 0;
+    color: #fff;
+}
+
+li.founder::before {
+    content: '\f19c';  /* FontAwesome user-tie */
+}
+
+li.manager::before {
+    content: '\f0c0';  /* FontAwesome users */
+}
+
+li.employee::before {
+    content: '\f007';  /* FontAwesome user */
+}
+
+/* Adjusting Vertical Space for the First Child */
+ul.tree > li:first-child::before {
+    background-color: transparent;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    ul.tree li {
+        font-size: 14px;
+    }
+
+    ul.tree li a {
+        padding: 4px 8px;
+    }
+}

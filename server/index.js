@@ -1,163 +1,143 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const mysql = require('mysql2');
+require('dotenv').config();
 
-const express = require("express");
-const mysql = require("mysql");
-const cors = require("cors");
- 
-const bcrypt = require('bcrypt'); // https://www.npmjs.com/package/bcrypt npm i bcrypt
-var jwt = require('jsonwebtoken'); //https://github.com/auth0/node-jsonwebtoken npm install jsonwebtoken
- 
 const app = express();
-const port = 3000
- 
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
- 
-const con = mysql.createConnection({
-    user: "root",
-    host: "localhost",
-    password: "",
-    database: "nodejspj"
-})
- 
-con.connect(function(err) {
-    if(err) {
-        console.log("Error in Connection");
-    } else {
-        console.log("Connected");
-    }
-})
- 
-app.get('/getEmployee', (req, res) => {
-    const sql = "SELECT * FROM employee";
-    con.query(sql, (err, result) => {
-        if(err) return res.json({Error: "Get employee error in sql"});
-        return res.json({Status: "Success", Result: result})
-    })
-})
- 
-app.get('/get/:id', (req, res) => {
-    const id = req.params.id;
-    const sql = "SELECT * FROM employee where id = ?";
-    con.query(sql, [id], (err, result) => {
-        if(err) return res.json({Error: "Get employee error in sql"});
-        return res.json({Status: "Success", Result: result})
-    })
-})
- 
-app.put("/update/:id", (req, res) => {
-  const userId = req.params.id;
-  const q = "UPDATE employee SET `name`= ?, `email`= ?, `salary`= ?, `address`= ? WHERE id = ?";
-  
-  const values = [
-    req.body.name,
-    req.body.email,
-    req.body.salary,
-    req.body.address,
-  ];
-  
-  con.query(q, [...values,userId], (err, data) => {
-    if (err) return res.send(err);
-    return res.json(data);
-    //return res.json({Status: "Success"})
-  });
+app.use(bodyParser.json());
+
+// MySQL database connection
+const db = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME
 });
- 
-app.delete('/delete/:id', (req, res) => {
-    const id = req.params.id;
-    const sql = "Delete FROM employee WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if(err) return res.json({Error: "delete employee error in sql"});
-        return res.json({Status: "Success"})
-    })
-})
- 
-app.get('/adminCount', (req, res) => {
-    const sql = "Select count(id) as admin from users";
-    con.query(sql, (err, result) => {
-        if(err) return res.json({Error: "Error in runnig query"});
-        return res.json(result);
-    })
-})
- 
-app.get('/employeeCount', (req, res) => {
-    const sql = "Select count(id) as employee from employee";
-    con.query(sql, (err, result) => {
-        if(err) return res.json({Error: "Error in runnig query"});
-        return res.json(result);
-    })
-})
- 
-app.get('/salary', (req, res) => {
-    const sql = "Select sum(salary) as sumOfSalary from employee";
-    con.query(sql, (err, result) => {
-        if(err) return res.json({Error: "Error in runnig query"});
-        return res.json(result);
-    })
-})
- 
-app.post('/create', (req, res) => {
-    const name = req.body.name;
-    const email = req.body.email;
-    const address = req.body.address;
-    const salary = req.body.salary;
-  
-    con.query("INSERT INTO employee (name, email, address, salary) VALUES (?, ?, ?, ?)", [name, email, address, salary], 
-        (err, result) => {
-            if(result){
-                res.send(result);
-            }else{
-                res.send({message: "ENTER CORRECT DETAILS!"})
-            }
+
+db.connect(err => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log("Successfully connected to the database.");
+});
+
+// API to add a new employee
+app.post('/employees', (req, res) => {
+    const { name, role } = req.body;  // Remove 'position' from here
+    const sql = 'INSERT INTO employees (name, role) VALUES (?, ?)';  // Update SQL query
+    db.query(sql, [name, role], (err, result) => {  // Remove 'position' from parameters
+        if (err) return res.status(500).send(err.message);
+        res.status(201).send('Employee added successfully');
+    });
+});
+
+
+// API to get list of all employees
+// app.get('/employees', (req, res) => {
+//     db.query('SELECT * FROM employees', (err, results) => {
+//         if (err) {
+//             console.error('Error fetching employees:', err);
+//             return res.status(500).json({ error: err.message });
+//         }
+//         res.json(results);
+//     });
+// });
+app.get('/employees', (req, res) => {
+    db.query(`
+        WITH RECURSIVE OrgChart AS (
+            SELECT id, name, role, manager_id
+            FROM employees
+            WHERE manager_id IS NULL
+            UNION ALL
+            SELECT e.id, e.name, e.role, e.manager_id
+            FROM employees e
+            INNER JOIN OrgChart oc ON oc.id = e.manager_id
+        )
+        SELECT * FROM OrgChart;
+    `, (err, results) => {
+        if (err) throw err;
+        res.json(results);
+    });
+});
+
+// API to get a specific employee's details, including their manager
+app.get('/employees/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `SELECT e.*, m.name as manager_name 
+                 FROM employees e 
+                 LEFT JOIN employees m ON e.manager_id = m.id 
+                 WHERE e.id = ?`;
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Error fetching employee:', err);
+            return res.status(500).json({ error: err.message });
         }
-    )
-})
- 
-app.get('/hash', (req, res) => { 
-    bcrypt.hash("123456", 10, (err, hash) => {
-        if(err) return res.json({Error: "Error in hashing password"});
-        const values = [
-            hash
-        ]
-        return res.json({result: hash});
-    } )
-})
- 
-app.post('/login', (req, res) => {
-    const sql = "SELECT * FROM users Where email = ?";
-    con.query(sql, [req.body.email], (err, result) => {
-        if(err) return res.json({Status: "Error", Error: "Error in runnig query"});
-        if(result.length > 0) {
-            bcrypt.compare(req.body.password.toString(), result[0].password, (err, response)=> {
-                if(err) return res.json({Error: "password error"});
-                if(response) {
-                    const token = jwt.sign({role: "admin"}, "jwt-secret-key", {expiresIn: '1d'});
-                    return res.json({Status: "Success", Token: token})
-                } else {
-                    return res.json({Status: "Error", Error: "Wrong Email or Password"});
-                }
-            })
-        } else {
-            return res.json({Status: "Error", Error: "Wrong Email or Password"});
+        res.json(results[0]);
+    });
+});
+
+// API to update employee details
+app.put('/employees/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, position, manager_id } = req.body;
+    const sql = 'UPDATE employees SET name = ?, position = ?, manager_id = ? WHERE id = ?';
+    db.query(sql, [name, position, manager_id, id], (err, results) => {
+        if (err) {
+            console.error('Error updating employee:', err);
+            return res.status(500).json({ error: err.message });
         }
-    })
-})
- 
-app.post('/register',(req, res) => {
-    const sql = "INSERT INTO users (`name`,`email`,`password`) VALUES (?)"; 
-    bcrypt.hash(req.body.password.toString(), 10, (err, hash) => {
-        if(err) return res.json({Error: "Error in hashing password"});
-        const values = [
-            req.body.name,
-            req.body.email,
-            hash,
-        ]
-        con.query(sql, [values], (err, result) => {
-            if(err) return res.json({Error: "Error query"});
-            return res.json({Status: "Success"});
-        })
-    } )
-})
- 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+        res.json({ message: 'Employee updated successfully' });
+    });
+});
+
+// API to remove an employee
+app.delete('/employees/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM employees WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            console.error('Error deleting employee:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Employee deleted successfully' });
+    });
+});
+
+// API to retrieve all direct and indirect subordinates of a manager
+app.get('/managers/:id/subordinates', (req, res) => {
+    const { id } = req.params;
+    const sql = `WITH RECURSIVE subordinates AS (
+                    SELECT id, name, position 
+                    FROM employees 
+                    WHERE manager_id = ?
+                    UNION ALL
+                    SELECT e.id, e.name, e.position
+                    FROM employees e
+                    INNER JOIN subordinates s ON s.id = e.manager_id
+                 )
+                 SELECT * FROM subordinates`;
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Error retrieving subordinates:', err);
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
+});
+
+app.get('/employees', (req, res) => {
+    fs.readFile('TreeData.json', 'utf8', (err, data) => {
+        if (err) {
+            return res.status(500).send("Unable to read data");
+        }
+        res.json(JSON.parse(data));
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

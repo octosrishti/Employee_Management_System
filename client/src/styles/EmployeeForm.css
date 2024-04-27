@@ -1,0 +1,46 @@
+.form-made{
+    padding: 80px 50px 0px 40px;
+}
+.employee-form-container {
+    background-color: #f8f9fa; /* Light gray background for the form area */
+    padding: 30px; /* Padding around the form content */
+    border-radius: 8px; /* Rounded corners for the form container */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    max-width: 600px; /* Maximum width of the form */
+    margin: 20px auto; /* Centering the form in the page */
+}
+
+.employee-form-heading {
+    font-size: 24px; /* Size of the form heading */
+    color: #343a40; /* Dark color for the text */
+    margin-bottom: 20px; /* Space below the heading */
+}
+
+.employee-form-label {
+    font-weight: bold; /* Bold font for input labels */
+    margin-bottom: 5px; /* Space between label and input field */
+}
+
+.employee-form-input {
+    margin-bottom: 15px; /* Space between form fields */
+}
+
+.employee-form-button {
+    background-color: #007bff; /* Blue background for the primary button */
+    color: white; /* White text color */
+    border: none; /* No border */
+    padding: 10px 15px; /* Padding inside the button */
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    margin-right: 10px; /* Space between buttons */
+}
+
+.employee-form-button-secondary {
+    background-color: #6c757d; /* Gray background for the secondary button */
+}
+
+.employee-form-error {
+    color: #dc3545; /* Red color for error messages */
+    font-size: 14px; /* Smaller text for error details */
+    margin-top: 10px; /* Space above error message */
+}
